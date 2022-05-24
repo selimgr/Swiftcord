@@ -6,17 +6,17 @@
 //
 
 import Foundation
-import DiscordAPI
+import DiscordKit
 
 extension ISOTimestamp {
-    func toDate() -> Date? {
+	func toDate(hasFractionalSeconds: Bool = true) -> Date? {
         let isoDateFormatter = ISO8601DateFormatter()
         isoDateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
         isoDateFormatter.formatOptions = [
             .withFullDate,
             .withFullTime,
-            .withDashSeparatorInDate,
-            .withFractionalSeconds]
+            .withDashSeparatorInDate]
+		if hasFractionalSeconds { isoDateFormatter.formatOptions.update(with: .withFractionalSeconds) }
         return isoDateFormatter.date(from: self)
     }
 }
