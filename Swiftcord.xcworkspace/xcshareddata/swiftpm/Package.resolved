@@ -5,8 +5,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/SwiftcordApp/DiscordKit",
       "state" : {
-        "branch" : "main",
-        "revision" : "666c734aea39c70de48bfad8365cd1201dc58110"
+        "revision" : "49e633328dbca713ecdd5e783d5d919a5ada110d"
       }
     },
     {
@@ -25,6 +24,15 @@
       "state" : {
         "revision" : "c01bbdf2d633cf049ae1ed1a68a2020a8bda32e2",
         "version" : "5.1.0"
+      }
+    },
+    {
+      "identity" : "sparkle",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/sparkle-project/Sparkle",
+      "state" : {
+        "revision" : "286edd1fa22505a9e54d170e9fd07d775ea233f2",
+        "version" : "2.1.0"
       }
     },
     {

@@ -26,7 +26,6 @@ struct ServerView: View {
     @StateObject private var serverCtx = ServerContext()
 	
 	private func loadChannels() {
-		print("load chs")
 		guard let channels = serverCtx.guild?.channels
 		else { return }
 		
@@ -38,11 +37,21 @@ struct ServerView: View {
         let selectableChs = channels.filter { $0.type != .category }
 		serverCtx.channel = selectableChs.first
 		
-		if serverCtx.channel == nil {
-			state.loadingState = .messageLoad
-		}
+		if serverCtx.channel == nil { state.loadingState = .messageLoad }
 		// Prevent deadlocking if there are no DMs/channels
     }
+	
+	private func bootstrapGuild(_ g: Guild) {
+		serverCtx.guild = g
+		loadChannels()
+		// Sending malformed IDs causes an instant Gateway session termination
+		guard !g.isDMChannel else { return }
+		// Subscribe to typing events
+		gateway.socket.send(
+			op: .subscribeGuildEvents,
+			data: SubscribeGuildEvts(guild_id: g.id, typing: true)
+		)
+	}
     
     private func toggleSidebar() {
         #if os(macOS)
@@ -64,8 +73,8 @@ struct ServerView: View {
 							}
 						}
 				} else {
-					Text("Guild loading")
-						.frame(maxHeight: .infinity)
+					Text("No server selected")
+						.frame(minWidth: 240, maxHeight: .infinity)
 				}
 				
 
@@ -106,9 +115,11 @@ You don't have access to any text channels or there are none in this server.
         .toolbar {
             ToolbarItemGroup(placement: .navigation) {
                 HStack {
-                    Image(systemName: "number")
-						.font(.system(size: 18)).opacity(0.77)
-                    Text(serverCtx.channel?.name ?? "No Channel")
+					Image(
+						systemName: serverCtx.channel?.type == .dm ? "at" :
+							(serverCtx.channel?.type == .groupDM ? "person.2.fill" : "number")
+					).font(.system(size: 18)).opacity(0.77).frame(width: 24, height: 24)
+					Text(serverCtx.channel?.label(gateway.cache.users) ?? "No Channel")
 						.font(.title2)
                 }
             }
@@ -122,18 +133,12 @@ You don't have access to any text channels or there are none in this server.
         }
         .onChange(of: guild) { newGuild in
 			guard let g = newGuild else { return }
-			serverCtx.guild = g
-			loadChannels()
-			// Sending malformed IDs causes an instant Gateway session termination
-			guard !g.isDMChannel else { return }
-			// Subscribe to typing events
-			gateway.socket.send(
-				op: .subscribeGuildEvents,
-				data: SubscribeGuildEvts(guild_id: g.id, typing: true)
-			)
+			bootstrapGuild(g)
 		}
         .onChange(of: state.loadingState) { s in if s == .gatewayConn { loadChannels() }}
         .onAppear {
+			if let g = guild { bootstrapGuild(g) }
+			
             evtID = gateway.onEvent.addHandler { (evt, d) in
                 switch evt {
                 /*case .channelUpdate:

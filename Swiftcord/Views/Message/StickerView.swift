@@ -8,17 +8,14 @@
 import SwiftUI
 import Lottie
 import DiscordKit
+import CachedAsyncImage
 
 struct StickerLoadingView: View {
     let size: Double
     var body: some View {
-        ZStack {
-            Image(systemName: "square.dashed")
-                .font(.system(size: size - 10))
-                .opacity(0.5)
-            ProgressView()
-                .progressViewStyle(.circular)
-        }.frame(width: size, height: size)
+		RoundedRectangle(cornerRadius: 4)
+			.fill(.gray.opacity(Double.random(in: 0.15...0.3)))
+			.frame(width: size, height: size)
     }
 }
 
@@ -83,7 +80,7 @@ struct StickerItemView: View {
 					}
 				default:
 					// Well it doesn't animate for some reason
-					AsyncImage(url: URL(string: "\(GatewayConfig.default.cdnURL)stickers/\(sticker.id).png?passthrough=true")!) { phase in
+					CachedAsyncImage(url: URL(string: "\(GatewayConfig.default.cdnURL)stickers/\(sticker.id).png?passthrough=true")!) { phase in
 						switch phase {
 							case .empty: StickerLoadingView(size: size)
 							case .success(let image): image.resizable().scaledToFill()
